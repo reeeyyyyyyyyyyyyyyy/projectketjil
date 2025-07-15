@@ -1,0 +1,11 @@
+*
+!.gitignore
+/vendor
+/node_modules
+/public/storage
+/.env
+.env.*
+/storage/*.key
+.idea
+*.log
+*.sqlite
