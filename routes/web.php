@@ -17,11 +17,12 @@ use App\Http\Controllers\GuestController;
 use App\Http\Controllers\Auth\GuestLoginController;
 use Illuminate\Support\Facades\Auth;
 
+// Route utama
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-/// Auth Routes
+// Auth Routes
 Auth::routes(['register' => true]); // Aktifkan registrasi
 
 // Public Tracking
@@ -32,19 +33,19 @@ Route::post('/tracking', [TrackingController::class, 'search']);
 Route::get('/guest-login', [GuestLoginController::class, 'showLoginForm'])->name('guest.login');
 Route::post('/guest-login', [GuestLoginController::class, 'login']);
 
+// Password Reset Routes
 Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 
-
-// Guest Routes (Pelanggan)
+// Guest Routes (Pelanggan) - Menggunakan middleware yang benar
 Route::middleware(['auth', 'role:guest'])->prefix('guest')->name('guest.')->group(function () {
     Route::get('/dashboard', [GuestController::class, 'dashboard'])->name('dashboard');
     Route::get('/documents', [GuestController::class, 'documents'])->name('documents');
     Route::get('/documents/{id}', [GuestController::class, 'documentDetail'])->name('document.detail');
-    // Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
 });
 
-// Staff Routes (Pegawai)
+// Staff Routes (Pegawai) - Menggunakan middleware yang benar
 Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->group(function () {
     Route::get('/dashboard', [StaffController::class, 'dashboard'])->name('dashboard');
     Route::get('/documents', [StaffController::class, 'documents'])->name('documents');
@@ -54,7 +55,7 @@ Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->grou
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
 });
 
-// Admin Routes
+// Admin Routes - Menggunakan middleware yang benar
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
@@ -76,15 +77,4 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Settings
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
-
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
-});
-
-// Common Authenticated Routes
-Route::middleware('auth')->group(function() {
-    Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
-
-    // Profile Update
-    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 });

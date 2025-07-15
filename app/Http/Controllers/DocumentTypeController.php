@@ -9,44 +9,65 @@ class DocumentTypeController extends Controller
 {
     public function index()
     {
-        $types = DocumentType::all();
-        return response()->json($types);
+        $documentTypes = DocumentType::paginate(10);
+        return view('admin.document-types.index', compact('documentTypes'));
+    }
+
+    public function create()
+    {
+        return view('admin.document-types.form');
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:document_types,name',
-            'processing_days' => 'required|integer|min:1',
-            'requirements' => 'required|array',
+            'name' => 'required|string|max:255',
+            'processing_days' => 'required|integer',
+            'requirements' => 'required|string',
         ]);
 
-        $type = DocumentType::create([
+        $requirements = array_filter(explode("\n", $request->requirements));
+
+        DocumentType::create([
             'name' => $request->name,
             'processing_days' => $request->processing_days,
-            'requirements' => $request->requirements,
+            'requirements' => json_encode($requirements),
         ]);
 
-        return response()->json($type, 201);
+        return redirect()->route('admin.document-types.index')->with('success', 'Jenis dokumen berhasil ditambahkan');
     }
 
-    public function show($id)
+    public function edit($id)
     {
-        $type = DocumentType::findOrFail($id);
-        return response()->json($type);
+        $documentType = DocumentType::findOrFail($id);
+        return view('admin.document-types.form', compact('documentType'));
     }
 
     public function update(Request $request, $id)
     {
-        $type = DocumentType::findOrFail($id);
-        $type->update($request->only(['name', 'processing_days', 'requirements']));
-        return response()->json($type);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'processing_days' => 'required|integer',
+            'requirements' => 'required|string',
+        ]);
+
+        $documentType = DocumentType::findOrFail($id);
+        $requirements = array_filter(explode("\n", $request->requirements));
+
+        $documentType->update([
+            'name' => $request->name,
+            'processing_days' => $request->processing_days,
+            'requirements' => json_encode($requirements),
+        ]);
+
+        return redirect()->route('admin.document-types.index')->with('success', 'Jenis dokumen berhasil diperbarui');
     }
 
     public function destroy($id)
     {
-        $type = DocumentType::findOrFail($id);
-        $type->delete();
-        return response()->json(['message' => 'Deleted']);
+        $documentType = DocumentType::findOrFail($id);
+        $documentType->delete();
+
+        return redirect()->route('admin.document-types.index')->with('success', 'Jenis dokumen berhasil dihapus');
     }
 }

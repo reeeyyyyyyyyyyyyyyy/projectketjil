@@ -21,7 +21,9 @@
                     </div>
                     <div class="ml-3">
                         <p class="text-sm text-red-700">
-                            Email atau password yang Anda masukkan salah
+                            @foreach ($errors->all() as $error)
+                                {{ $error }}
+                            @endforeach
                         </p>
                     </div>
                 </div>
@@ -94,4 +96,29 @@
         </div>
     </div>
 </div>
+
+<script>
+// Refresh CSRF token jika expired
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const csrfToken = document.querySelector('input[name="_token"]');
+
+    if (form && csrfToken) {
+        form.addEventListener('submit', function(e) {
+            // Refresh token jika sudah expired (lebih dari 2 jam)
+            const tokenTime = csrfToken.getAttribute('data-time');
+            const currentTime = Date.now();
+
+            if (tokenTime && (currentTime - tokenTime) > 7200000) { // 2 jam
+                e.preventDefault();
+                location.reload();
+            }
+        });
+
+        // Set timestamp untuk token
+        csrfToken.setAttribute('data-time', Date.now());
+    }
+});
+</script>
 @endsection
+
