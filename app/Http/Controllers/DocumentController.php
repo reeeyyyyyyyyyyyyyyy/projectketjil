@@ -11,8 +11,14 @@ class DocumentController extends Controller
 {
     public function index()
     {
-        $documents = Document::with('type', 'trackingHistories')->get();
-        return response()->json($documents);
+        $documents = Document::with('type')->latest()->paginate(10);
+        return view('admin.documents.index', compact('documents'));
+    }
+
+    public function create()
+    {
+        $documentTypes = DocumentType::orderBy('name')->get();
+        return view('admin.documents.form', compact('documentTypes'));
     }
 
     public function store(Request $request)
@@ -39,27 +45,45 @@ class DocumentController extends Controller
             'submission_date' => now(),
         ]);
 
-        return response()->json($document, 201);
+        return redirect()->route('admin.documents.index')->with('success', 'Dokumen berhasil diajukan.');
     }
 
     public function show($id)
     {
         $document = Document::with('type', 'trackingHistories')->findOrFail($id);
-        return response()->json($document);
+        return view('admin.documents.show', compact('document'));
     }
 
-    public function updateStatus(Request $request, $id)
+    public function edit($id)
+    {
+        $document = Document::findOrFail($id);
+        $documentTypes = DocumentType::orderBy('name')->get();
+
+        return view('admin.documents.form', compact('document', 'documentTypes'));
+    }
+
+    public function update(Request $request, $id)
     {
         $request->validate([
+            'document_type_id' => 'required|exists:document_types,id',
+            'applicant_name' => 'required',
+            'applicant_phone' => 'required',
+            'applicant_email' => 'required|email',
+            'business_address' => 'required',
             'status' => 'required|string',
-            'notes' => 'nullable|string',
         ]);
 
         $document = Document::findOrFail($id);
-        $document->status = $request->status;
-        $document->notes = $request->notes;
-        $document->save();
+        $document->update($request->all());
 
-        return response()->json($document);
+        return redirect()->route('admin.documents.index')->with('success', 'Dokumen berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        $document = Document::findOrFail($id);
+        $document->delete();
+
+        return redirect()->route('admin.documents.index')->with('success', 'Dokumen berhasil dihapus.');
     }
 }

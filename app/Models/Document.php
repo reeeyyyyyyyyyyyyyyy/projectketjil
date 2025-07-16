@@ -28,7 +28,7 @@ class Document extends Model
         'completion_date',
     ];
 
-    public function type()
+    public function documentType()
     {
         return $this->belongsTo(DocumentType::class, 'document_type_id');
     }
